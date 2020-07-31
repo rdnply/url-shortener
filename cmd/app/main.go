@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"log"
+
+	"github.com/rdnply/url-shortener/internal/app"
+)
 
 func main() {
-	fmt.Println("vim-go")
+	app, err := app.New(":5000")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	app.RunServer()
 }

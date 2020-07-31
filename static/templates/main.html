@@ -1,0 +1,14 @@
+{{ define "main" }}
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Url-shortener</title>
+	</head>
+	<body>
+		 {{ if .NewForm }}
+			 {{ template "new-form" . }}
+		 {{ end }}
+	</body>
+	</html>
+{{ end }}
