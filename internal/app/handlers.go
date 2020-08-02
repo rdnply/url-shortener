@@ -17,6 +17,10 @@ func (app *App) loadMainPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *App) createLink(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func renderTemplate(w io.Writer, tmpl *template.Template, payload interface{}) error {
 	err := tmpl.Execute(w, payload)
 	if err != nil {
