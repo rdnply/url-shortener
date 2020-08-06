@@ -12,6 +12,7 @@ func (app *App) routes() http.Handler {
 		r.Get("/", app.loadMainPage)
 		r.Post("/new", app.createLink)
 		r.Get("/s/{shortID}", app.serverSideRedirect)
+		r.Get("/stats/{shortID}", app.showStats)
 	})
 
 	return r

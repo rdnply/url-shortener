@@ -35,6 +35,18 @@ func (app *App) createLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.Redirect(w, r, "/stats/"+l.ShortID, http.StatusMovedPermanently)
+}
+
+func (app *App) showStats(w http.ResponseWriter, r *http.Request) {
+	shortID := chi.URLParam(r, "shortID")
+
+	l, err := app.LinkStorage.GetLinkByShortID(shortID)
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+
 	err = renderTemplate(w, app.Templates.main, struct {
 		NewForm bool
 		Link    *link.Link
@@ -61,7 +73,7 @@ func (app *App) serverSideRedirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, link.URL, http.StatusMovedPermanently)
+	http.Redirect(w, r, link.URL, http.StatusSeeOther)
 }
 
 func renderTemplate(w io.Writer, tmpl *template.Template, payload interface{}) error {
