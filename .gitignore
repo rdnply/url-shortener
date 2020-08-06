@@ -2,3 +2,4 @@
 *.txt
 *.sql
 *.json
+*.golden

@@ -10,6 +10,7 @@ import (
 	"github.com/rdnply/url-shortener/internal/counter"
 	"github.com/rdnply/url-shortener/internal/link"
 	"github.com/rdnply/url-shortener/internal/postgres"
+	"github.com/rdnply/url-shortener/internal/project"
 	"github.com/rdnply/url-shortener/pkg/pkg/logger"
 )
 
@@ -70,7 +71,9 @@ func readTemplates() *templates {
 }
 
 func createTemplate(name string, tmpls ...string) *template.Template {
+	os.Chdir(project.Root)
 	os.Chdir("templates")
+	defer os.Chdir(project.Root)
 
 	t := template.Must(template.New(name).
 		ParseFiles(tmpls...))
