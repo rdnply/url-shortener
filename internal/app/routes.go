@@ -11,6 +11,7 @@ func (app *App) routes() http.Handler {
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", app.loadMainPage)
 		r.Post("/new", app.createLink)
+		r.Get("/s/{shortID}", app.serverSideRedirect)
 	})
 
 	return r

@@ -8,6 +8,8 @@
 	<body>
 		 {{ if .NewForm }}
 			 {{ template "new-form" . }}
+		{{ else }} 
+			 {{ template "stats" . }}
 		 {{ end }}
 	</body>
 	</html>

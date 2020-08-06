@@ -1,14 +1,13 @@
 package postgres
 
 import (
-	"database/sql"
-
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
 type statementStorage struct {
 	db         *DB
-	statements []*sql.Stmt
+	statements []*sqlx.Stmt
 }
 
 func newStatementsStorage(db *DB) statementStorage {
@@ -27,12 +26,12 @@ func (s *statementStorage) Close() error {
 
 type stmt struct {
 	Query string
-	Dst   **sql.Stmt
+	Dst   **sqlx.Stmt
 }
 
 func (s *statementStorage) initStatements(statements []stmt) error {
 	for i := range statements {
-		statement, err := s.db.Session.Prepare(statements[i].Query)
+		statement, err := s.db.Session.Preparex(statements[i].Query)
 		if err != nil {
 			return errors.Wrapf(err, "can't prepare query %q", statements[i].Query)
 		}

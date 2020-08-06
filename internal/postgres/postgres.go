@@ -1,27 +1,25 @@
 package postgres
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
-	"os"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // init postgres driver
 	"github.com/pkg/errors"
 )
 
 type DB struct {
-	Session *sql.DB
+	Session *sqlx.DB
 }
 
 func New() (*DB, error) {
-	url, err := getDBConfig()
+	url, err := parseConfig("config.json")
 	if err != nil {
 		return nil, errors.Wrap(err, "can't get env vars with db configuration")
 	}
 
-	db, err := sql.Open("postgres", url)
+	db, err := sqlx.Open("postgres", url)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't open connection to postgres")
 	}
@@ -31,19 +29,21 @@ func New() (*DB, error) {
 	}, nil
 }
 
-func getDBConfig() (string, error) {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-
-	url := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	return url, nil
-}
+/*
+ * func getDBConfig() (string, error) {
+ *     host := os.Getenv("DB_HOST")
+ *     port := os.Getenv("DB_PORT")
+ *     user := os.Getenv("DB_USER")
+ *     password := os.Getenv("DB_PASSWORD")
+ *     dbname := os.Getenv("DB_NAME")
+ *
+ *     url := fmt.Sprintf("host=%s port=%s user=%s "+
+ *         "password=%s dbname=%s sslmode=disable",
+ *         host, port, user, password, dbname)
+ *
+ *     return url, nil
+ * }
+ */
 
 func (d *DB) CheckConnection() error {
 	var err error

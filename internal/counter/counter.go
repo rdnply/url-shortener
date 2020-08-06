@@ -1,10 +1,11 @@
 package counter
 
 type Counter struct {
-	ID        uint
-	CurrValue uint
+	ID    uint
+	Value uint
 }
 
 type Storage interface {
-	Increment() uint
+	Init() error
+	Increment() (uint, error)
 }

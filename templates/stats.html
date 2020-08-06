@@ -1,0 +1,22 @@
+{{ define "stats" }}
+	<div>
+		<table>
+			<tr>
+				<td>Original link</td>
+				<td><a href="{{ .Link.URL }}">{{ .Link.URL }}</a></td>
+			</tr>
+			<tr>
+				<td>Server-side redirection</td>
+				<td><a href="/s/{{ .Link.ShortID }}" id="server-redir-url">{{ .Link.ShortID }}</a></td>
+			</tr>
+			<tr>
+				<td>Clicks</td>
+				<td>{{ .Link.Clicks }}</td>
+			</tr>
+		</table>
+	</div>
+
+	<script>
+		document.getElementById("server-redir-url").innerText = window.location.origin + "/s/{{ .Link.ShortID }}"
+	</script>
+{{ end }}

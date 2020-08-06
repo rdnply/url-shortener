@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+	"github.com/rdnply/url-shortener/internal/link"
 )
 
 func (app *App) loadMainPage(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +20,48 @@ func (app *App) loadMainPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) createLink(w http.ResponseWriter, r *http.Request) {
+	url := r.PostFormValue("url")
+	counter, err := app.CounterStorage.Increment()
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
 
+	encodedLink := app.BaseConvertor.Encode(counter)
+
+	l := &link.Link{URL: url, ShortID: encodedLink, ShortIDInt: counter, Clicks: 0}
+	if _, err := app.LinkStorage.AddLink(l); err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+
+	err = renderTemplate(w, app.Templates.main, struct {
+		NewForm bool
+		Link    *link.Link
+	}{
+		NewForm: false,
+		Link:    l,
+	})
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+}
+
+func (app *App) serverSideRedirect(w http.ResponseWriter, r *http.Request) {
+	shortID := chi.URLParam(r, "shortID")
+	link, err := app.LinkStorage.GetLinkByShortID(shortID)
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+
+	if _, err := app.LinkStorage.IncrementLinkCounter(link); err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+
+	http.Redirect(w, r, link.URL, http.StatusMovedPermanently)
 }
 
 func renderTemplate(w io.Writer, tmpl *template.Template, payload interface{}) error {
