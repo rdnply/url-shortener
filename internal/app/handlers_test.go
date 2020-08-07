@@ -39,7 +39,7 @@ var (
 	counterValue uint = 3
 	links             = []*link.Link{
 		{1, "example.com", "1", 1, 3},
-		{2, "ex.com", "2", 2, 0},
+		{2, "second.com", "2", 2, 0},
 		{3, "examp.org", "3", 3, 4},
 	}
 )
@@ -51,9 +51,9 @@ func TestCreateLink(t *testing.T) {
 	mockApp.LinkStorage = &test.MockLinkStorage{Items: links}
 
 	testCases := []test.EndpointTestCase{
-		{"create link ok", "POST", "newLink.com", "application/x-www-form-urlencoded", "url=newLink.com",
+		{"create link: ok", "POST", "newLink.com", "application/x-www-form-urlencoded", "url=newLink.com",
 			mockApp.createLink, http.StatusMovedPermanently, "", "/stats/4"},
-		{"create link get empty string", "GET", "", "", "",
+		{"create link: get empty string", "GET", "", "", "",
 			mockApp.createLink, http.StatusBadRequest, "*get empty string*", ""},
 	}
 
@@ -68,7 +68,7 @@ func TestShowStats(t *testing.T) {
 	mockApp.LinkStorage = &test.MockLinkStorage{Items: links}
 
 	tc := test.TemplateTestCase{
-		Name:    "show stats page ok",
+		Name:    "show stats page: ok",
 		Method:  "GET",
 		URL:     "/stats/1",
 		Body:    "",
@@ -78,6 +78,33 @@ func TestShowStats(t *testing.T) {
 
 	test.EndpointReturnsTemplate(t, tc, *update)
 
+	tcNotFound := test.EndpointTestCase{
+		Name:       "show stats page: not found link",
+		Method:     "GET",
+		URL:        "/stats/999",
+		Handler:    mockApp.showStats,
+		WantStatus: http.StatusNotFound,
+		WantBody:   "*not found link*",
+	}
+
+	test.Endpoint(t, tcNotFound)
+}
+
+func TestServerSideRedirect(t *testing.T) {
+	mockApp := appForTest()
+
+	mockApp.LinkStorage = &test.MockLinkStorage{Items: links}
+
+	testCases := []test.EndpointTestCase{
+		{"server side redirect: ok", "GET", "/s/2", "", "",
+			mockApp.serverSideRedirect, http.StatusSeeOther, "", "/s/" + links[1].URL},
+		{"server side redirect: not found link", "GET", "/s/999", "", "",
+			mockApp.serverSideRedirect, http.StatusNotFound, "*not found link*", ""},
+	}
+
+	for _, tc := range testCases {
+		test.Endpoint(t, tc)
+	}
 }
 
 func appForTest() *App {

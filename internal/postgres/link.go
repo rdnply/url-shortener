@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"database/sql"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/rdnply/url-shortener/internal/link"
@@ -50,6 +52,9 @@ const getLinkByShortIDQuery = `SELECT link_id, ` + linkFields + ` FROM links WHE
 func (s *LinkStorage) GetLinkByShortID(shortID string) (*link.Link, error) {
 	var link link.Link
 	if err := s.getByShortIDStmt.Get(&link, shortID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, errors.Wrap(err, "can't get link by short id")
 	}
 

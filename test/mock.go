@@ -41,7 +41,7 @@ func (m *MockLinkStorage) GetLinkByShortID(shortID string) (*link.Link, error) {
 		}
 	}
 
-	return &link.Link{}, nil
+	return nil, nil
 }
 
 func (m *MockLinkStorage) IncrementLinkCounter(link *link.Link) (uint, error) {

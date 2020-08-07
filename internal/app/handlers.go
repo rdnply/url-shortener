@@ -51,6 +51,11 @@ func (app *App) showStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if l == nil {
+		app.NotFound(w, err, fmt.Sprintf("not found link with short id: %v", shortID))
+		return
+	}
+
 	err = renderTemplate(w, app.Templates.main, struct {
 		NewForm bool
 		Link    *link.Link
@@ -69,6 +74,11 @@ func (app *App) serverSideRedirect(w http.ResponseWriter, r *http.Request) {
 	link, err := app.LinkStorage.GetLinkByShortID(shortID)
 	if err != nil {
 		app.ServerError(w, err, "")
+		return
+	}
+
+	if link == nil {
+		app.NotFound(w, err, fmt.Sprintf("not found link with short id: %v", shortID))
 		return
 	}
 

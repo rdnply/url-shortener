@@ -39,7 +39,7 @@ func EndpointReturnsTemplate(t *testing.T, tc TemplateTestCase, update bool) {
 		got := res.Body.String()
 		want := goldenValue(t, tc.Golden, got, update)
 
-		assert.Equal(t, got, want, wrongBody(got, want))
+		assert.Equal(t, want, got, wrongBody(got, want))
 	})
 }
 
@@ -106,7 +106,7 @@ func Endpoint(t *testing.T, tc EndpointTestCase) {
 			}
 		} else {
 			got := res.HeaderMap.Get("Location")
-			assert.Equal(t, got, tc.WantLocation, wrongBody(got, tc.WantLocation))
+			assert.Equal(t, tc.WantLocation, got, wrongBody(got, tc.WantLocation))
 		}
 
 	})
