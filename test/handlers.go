@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/rdnply/url-shortener/internal/project"
@@ -19,10 +20,8 @@ type TemplateTestCase struct {
 	Name    string
 	Method  string
 	URL     string
-	Header  string
 	Body    string
 	Handler http.HandlerFunc
-	Payload interface{}
 	Golden  string
 }
 
@@ -31,10 +30,6 @@ func EndpointReturnsTemplate(t *testing.T, tc TemplateTestCase, update bool) {
 		req, err := http.NewRequest(tc.Method, tc.URL, bytes.NewBufferString(tc.Body))
 		if err != nil {
 			t.Fatalf("can't create test request %v", err)
-		}
-
-		if tc.Header != "" {
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 
 		res := httptest.NewRecorder()
@@ -74,21 +69,27 @@ func goldenValue(t *testing.T, goldenName string, actual string, update bool) st
 	return string(content)
 }
 
-type RedirectTestCase struct {
+type EndpointTestCase struct {
 	Name         string
 	Method       string
 	URL          string
+	Header       string
 	Body         string
 	Handler      http.HandlerFunc
 	WantStatus   int
+	WantBody     string
 	WantLocation string
 }
 
-func RedirectsEndpoint(t *testing.T, tc RedirectTestCase) {
+func Endpoint(t *testing.T, tc EndpointTestCase) {
 	t.Run(tc.Name, func(t *testing.T) {
 		req, err := http.NewRequest(tc.Method, tc.URL, bytes.NewBufferString(tc.Body))
 		if err != nil {
 			t.Fatalf("can't create test request %v", err)
+		}
+
+		if tc.Header != "" {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 
 		res := httptest.NewRecorder()
@@ -96,7 +97,18 @@ func RedirectsEndpoint(t *testing.T, tc RedirectTestCase) {
 		tc.Handler.ServeHTTP(res, req)
 		assert.Equal(t, tc.WantStatus, res.Code, wrongCode(res.Code, tc.WantStatus))
 
-		assert.Equal(t, res.HeaderMap.Get("Location"), tc.WantLocation, wrongBody(res.HeaderMap.Get("Location"), tc.WantLocation))
+		if tc.WantBody != "" {
+			pattern := strings.Trim(tc.WantBody, "*")
+			if pattern != tc.WantBody {
+				assert.Contains(t, res.Body.String(), pattern, wrongBody(res.Body.String(), pattern))
+			} else {
+				assert.JSONEq(t, tc.WantBody, res.Body.String(), wrongBody(res.Body.String(), tc.WantBody))
+			}
+		} else {
+			got := res.HeaderMap.Get("Location")
+			assert.Equal(t, got, tc.WantLocation, wrongBody(got, tc.WantLocation))
+		}
+
 	})
 }
 

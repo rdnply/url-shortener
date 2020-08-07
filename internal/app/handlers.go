@@ -5,8 +5,8 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"strings"
 
-	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 	"github.com/rdnply/url-shortener/internal/link"
 )
@@ -21,6 +21,11 @@ func (app *App) loadMainPage(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) createLink(w http.ResponseWriter, r *http.Request) {
 	url := r.PostFormValue("url")
+	if url == "" {
+		app.BadRequest(w, nil, "get empty string")
+		return
+	}
+
 	counter, err := app.CounterStorage.Increment()
 	if err != nil {
 		app.ServerError(w, err, "")
@@ -39,8 +44,7 @@ func (app *App) createLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) showStats(w http.ResponseWriter, r *http.Request) {
-	shortID := chi.URLParam(r, "shortID")
-
+	shortID := getIDFromURL(r)
 	l, err := app.LinkStorage.GetLinkByShortID(shortID)
 	if err != nil {
 		app.ServerError(w, err, "")
@@ -61,7 +65,7 @@ func (app *App) showStats(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) serverSideRedirect(w http.ResponseWriter, r *http.Request) {
-	shortID := chi.URLParam(r, "shortID")
+	shortID := getIDFromURL(r)
 	link, err := app.LinkStorage.GetLinkByShortID(shortID)
 	if err != nil {
 		app.ServerError(w, err, "")
@@ -74,6 +78,14 @@ func (app *App) serverSideRedirect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, link.URL, http.StatusSeeOther)
+}
+
+// getIDFromURL returns an identifier that is located at the end of the URL string
+func getIDFromURL(r *http.Request) string {
+	str := r.URL.String()
+	params := strings.Split(str, "/")
+
+	return params[len(params)-1]
 }
 
 func renderTemplate(w io.Writer, tmpl *template.Template, payload interface{}) error {
